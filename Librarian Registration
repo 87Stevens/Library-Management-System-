@@ -1,0 +1,79 @@
+Imports System.Data.SQLite
+Imports System.IO
+Public Class RegisterLibrarian
+
+    Private connectionString As String = "DataSource=C:\Users\Steve\Desktop\Visual Basic Programming Projects\LibManager.db"
+
+    Private Sub RegisterLibrarian_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+    End Sub
+
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim Fulname As String = TextBox1.Text
+        Dim NIN_ID_No As String = TextBox2.Text
+        Dim Password As String = TextBox3.Text
+        Dim Username As String = TextBox4.Text
+        Dim Role As String = TextBox5.Text
+        Dim Confirm As String = TextBox6.Text
+        Dim Gender As String = ComboBox1.Text
+        Dim Start_Date As String = DateTimePicker1.Text
+
+        If Fulname.Trim() = "" Or NIN_ID_No.Trim() = "" Or Password.Trim() = "" Or Username.Trim() = "" Or Role.Trim() = "" Or Gender.Trim() = "" Or Start_Date.Trim() = "" Or Confirm.Trim() = "" Then
+            MessageBox.Show("Please enter all the fields")
+            Exit Sub
+        End If
+
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+            Dim command As New SQLiteCommand("Insert Into Login (Fulname,NIN_ID_No,Password,Username,Role,Confirm,Gender,Start_Date) Values(@Fulname,@NIN_ID_No,@Password,@Username,@Role,@Confirm,@Gender,@Start_Date)", connection)
+            command.Parameters.AddWithValue("@Fulname", Fulname)
+            command.Parameters.AddWithValue("@NIN_ID_No", NIN_ID_No)
+            command.Parameters.AddWithValue("@Password", Password)
+            command.Parameters.AddWithValue("@Username", Username)
+            command.Parameters.AddWithValue("@Role", Role)
+            command.Parameters.AddWithValue("@Confirm", Confirm)
+            command.Parameters.AddWithValue("@Gender", Gender)
+            command.Parameters.AddWithValue("@Start_Date", Start_Date)
+
+            If String.IsNullOrEmpty(Password) Or String.IsNullOrEmpty(Confirm) Then
+                MessageBox.Show("Both password fields are required.")
+
+            ElseIf Password <> Confirm Then
+                MessageBox.Show("Passwords do not match.")
+
+            Else
+                command.ExecuteNonQuery()
+                MessageBox.Show("Data inserted successfully!")
+                BookManagement.Show()
+
+                TextBox1.Text = ""
+                TextBox2.Text = ""
+                TextBox3.Text = ""
+                TextBox4.Text = ""
+                TextBox5.Text = ""
+                TextBox6.Text = ""
+                ComboBox1.Text = ""
+                DateTimePicker1.Text = ""
+
+
+            End If
+
+
+        End Using
+    End Sub
+
+    Private Sub TextBox5_TextChanged(sender As Object, e As EventArgs) Handles TextBox5.TextChanged
+
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Me.Close()
+
+
+    End Sub
+
+    Private Sub TextBox6_TextChanged(sender As Object, e As EventArgs) Handles TextBox6.TextChanged
+
+    End Sub
+End Class
