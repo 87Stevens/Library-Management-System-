@@ -3,7 +3,7 @@ An overview of the application
 This application is aimed at registering librarians initially such that an account is created for a particular librarian which later supports as the login functionality
 A librarian can add, modify and delete a book. Again He/She can register students to the library and capture flow of books in the library with ease
 
-Instructions for setting up and running the application locally
+                 Instructions for setting up and running the application locally
 Initially when a librarian is new to system or employed, He/She is required to sign Up a form  by pressing a Sign UP button on the login page, If the credentials are valid then access is granted for further forms Like Book_Management form.
 On the Book_Management form there is a Navigation Pane which helps the librarian to navigate to different forms like the Membership form,Borrow_and_Return and Log Out. When a user clicks Log Out the session is terminated and Login Page appears for the next ssession if desired
         TERMINOLOGIES USED
