@@ -1,0 +1,161 @@
+Imports System.Data.SQLite
+
+Public Class Borrow_and_Return
+
+    Private connectionString As String = "DataSource=C:\Users\Steve\Desktop\Visual Basic Programming Projects\LibManager.db"
+    Private Sub Borrow_and_Return_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Dim dataTable = GetDataTable() ' Replace with your data retrieval method
+        DataGridView1.DataSource = dataTable
+    End Sub
+    Private Sub DataGridView1_CellClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellClick
+        If e.RowIndex >= 0 Then
+
+            ' Get the selected row
+            Dim selectedRow As DataGridViewRow = DataGridView1.Rows(e.RowIndex)
+
+
+            ' Access data from the selected row
+            TextBox1.Text = selectedRow.Cells(0).Value.ToString()
+            TextBox2.Text = selectedRow.Cells(1).Value.ToString()
+            TextBox3.Text = selectedRow.Cells(2).Value.ToString()
+            TextBox4.Text = selectedRow.Cells(3).Value.ToString()
+            TextBox6.Text = selectedRow.Cells(5).Value.ToString()
+            DateTimePicker1.Text = selectedRow.Cells(4).Value.ToString()
+            TextBox7.Text = selectedRow.Cells(6).Value.ToString()
+
+
+        End If
+    End Sub
+    Private Function GetFilteredData(searchText As String) As DataTable
+        Dim filteredData As New DataTable()
+
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+
+            Dim sql = String.Format("SELECT * FROM Borrow_Return WHERE LOWER(Name) LIKE '%{0}%' OR LOWER(Membership_ID) LIKE '%{0}%'", searchText)
+            Dim command As New SQLiteCommand(sql, connection)
+            Dim reader As SQLiteDataReader = command.ExecuteReader()
+
+            filteredData.Load(reader)
+
+        End Using
+
+        Return filteredData
+    End Function
+    Private Function GetDataTable() As DataTable
+        Dim dataTable As New DataTable()
+
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+
+            Dim command As New SQLiteCommand("SELECT * FROM Borrow_Return", connection)
+            Dim reader As SQLiteDataReader = command.ExecuteReader()
+
+            dataTable.Load(reader)
+
+
+
+        End Using
+
+        Return dataTable
+    End Function
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim Membership_ID As String = TextBox1.Text
+        Dim Name As String = TextBox2.Text
+        Dim Book_Title As String = TextBox3.Text
+        Dim Author As String = TextBox4.Text
+        Dim Borrow_Date As String = DateTimePicker1.Text
+        Dim Return_Date As String = TextBox6.Text
+        Dim Overdue_Date As String = TextBox7.Text
+
+
+
+        If Membership_ID.Trim() = "" Or Name.Trim() = "" Or Book_Title.Trim() = "" Or Author.Trim() = "" Or Return_Date.Trim() = "" Then
+            MessageBox.Show("Please enter all the fields except overdue date.")
+            Exit Sub
+        End If
+
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+            Dim command As New SQLiteCommand("INSERT INTO Borrow_Return (Name,Membership_ID,Book_Title,Author,Borrow_Date,Return_Date,Overdue_Date) VALUES (@Name,@Membership_ID,@Book_Title,@Author,@Borrow_Date,@Return_Date,@Overdue_Date)", connection)
+            command.Parameters.AddWithValue("@Name", Name)
+            command.Parameters.AddWithValue("@Membership_ID", Membership_ID)
+            command.Parameters.AddWithValue("@Book_Title", Book_Title)
+            command.Parameters.AddWithValue("@Author", Author)
+            command.Parameters.AddWithValue("@Borrow_Date", Borrow_Date)
+            command.Parameters.AddWithValue("@Return_Date", Return_Date)
+            command.Parameters.AddWithValue("@Overdue_Date", Overdue_Date)
+
+
+            command.ExecuteNonQuery()
+
+            If MessageBox.Show("Data inserted successfully!", "Confirmation", MessageBoxButtons.OK) = DialogResult.OK Then
+                ' Refresh DataGridView here
+                Dim dataTable = GetDataTable() ' Replace with your data retrieval method
+                DataGridView1.DataSource = dataTable
+            End If
+            TextBox1.Text = ""
+            TextBox2.Text = ""
+            TextBox3.Text = ""
+            TextBox4.Text = ""
+            TextBox6.Text = ""
+            TextBox7.Text = ""
+
+        End Using
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim Membership_ID As String = TextBox1.Text
+        Dim Name As String = TextBox2.Text
+        Dim Book_Title As String = TextBox3.Text
+        Dim Author As String = TextBox4.Text
+        Dim Borrow_Date As String = DateTimePicker1.Text
+        Dim Return_Date As String = TextBox6.Text
+        Dim Overdue_Date As String = TextBox7.Text
+
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+
+            Dim command As New SQLiteCommand("UPDATE Borrow_Return SET Name = @Name, Membership_ID = @Membership_ID,Author= @Author,Borrow_Date=@Borrow_Date,Return_Date=@Return_Date,Overdue_Date=@Overdue_Date WHERE Book_Title = @Book_Title", connection)
+            command.Parameters.AddWithValue("@Name", Name)
+            command.Parameters.AddWithValue("@Membership_ID", Membership_ID)
+            command.Parameters.AddWithValue("@Book_Title", Book_Title)
+            command.Parameters.AddWithValue("@Author", Author)
+            command.Parameters.AddWithValue("@Borrow_Date", Borrow_Date)
+            command.Parameters.AddWithValue("@Return_Date", Return_Date)
+            command.Parameters.AddWithValue("@Overdue_Date", Overdue_Date)
+            Dim rowsAffected As Integer = command.ExecuteNonQuery()
+
+            If rowsAffected > 0 Then
+                If MessageBox.Show(" " & TextBox1.Text & " Updated successfully!", "Confirmation", MessageBoxButtons.OK) = DialogResult.OK Then
+                    ' Refresh DataGridView here
+                    Dim dataTable = GetDataTable() ' Replace with your data retrieval method
+                    DataGridView1.DataSource = dataTable
+                End If
+                TextBox1.Text = ""
+                TextBox2.Text = ""
+                TextBox3.Text = ""
+                TextBox4.Text = ""
+                TextBox6.Text = ""
+                TextBox7.Text = ""
+
+            Else
+                MessageBox.Show("No data updated.")
+            End If
+        End Using
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Dim searchText As String = txtSearch.Text.ToLower()
+
+        If Not String.IsNullOrEmpty(searchText) Then
+            Dim filteredData = GetFilteredData(searchText)
+            DataGridView1.DataSource = filteredData
+        Else
+            MessageBox.Show("Please enter a search Field.")
+            Dim dataTable = GetDataTable() ' Replace with your data retrieval method
+            DataGridView1.DataSource = dataTable
+        End If
+    End Sub
+End Class
