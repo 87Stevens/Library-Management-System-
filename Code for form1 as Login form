@@ -1,0 +1,48 @@
+Imports System.Data.SQLite
+
+Public Class Form1
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        RegisterLibrarian.Show()
+        Me.Hide()
+
+
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim Username As String = TextBox1.Text.Trim()
+        Dim Password As String = TextBox2.Text.Trim()
+
+        ' Validate empty fields (optional)
+        If Username = "" Or Password = "" Then
+            MessageBox.Show("Please enter username and password.", "Login Error")
+            Exit Sub
+        End If
+        Dim connectionString As String = "Data Source=C:\Users\Steve\Desktop\Visual Basic Programming Projects\LibManager.db"  ' Replace with your path
+        Using connection As New SQLiteConnection(connectionString)
+            ' Securely prepare the SQL statement to prevent injection attacks
+            Dim sql As String = "SELECT Count(*) FROM Login WHERE Username = @Username AND Password = @Password"
+            Using command As New SQLiteCommand(sql, connection)
+                command.Parameters.AddWithValue("@Username", Username)
+                ' Hash password before storing it for security! (See note below)
+                command.Parameters.AddWithValue("@Password", Password)  ' Placeholder for secure hashing
+
+                connection.Open()  ' Open the connection
+
+                ' Execute the query and check if a user is found
+                Dim count As Integer = CInt(command.ExecuteScalar())
+                If count = 1 Then
+                    ' Login successful (consider storing user information for further use)
+                    MessageBox.Show("Login successful!")
+                    BookManagement.Show()
+                    ' Open main application form or perform actions after successful login
+                Else
+                    MessageBox.Show("Invalid username or password.", "Login Error")
+                End If
+            End Using
+        End Using
+    End Sub
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+    End Sub
+End Class
