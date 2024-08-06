@@ -1,0 +1,232 @@
+Imports System.Data.SQLite
+Imports System.Formats.Asn1
+
+Public Class BookManagement
+
+    Private connectionString As String = "DataSource=C:\Users\Steve\Desktop\Visual Basic Programming Projects\LibManager.db"
+    Private Function GetDataTable() As DataTable
+        Dim dataTable As New DataTable()
+
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+
+            Dim command As New SQLiteCommand("SELECT * FROM Book_Management", connection)
+            Dim reader As SQLiteDataReader = command.ExecuteReader()
+
+            dataTable.Load(reader)
+        End Using
+
+        Return dataTable
+    End Function
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        Dim Book_Title As String = TextBox1.Text
+        Dim Author As String = TextBox2.Text
+        Dim Genre As String = TextBox3.Text
+        Dim Publication_Date As String = TextBox4.Text
+        Dim ISBN As String = TextBox5.Text
+
+
+        If Book_Title.Trim() = "" Or Author.Trim() = "" Or Genre.Trim() = "" Or Publication_Date.Trim() = "" Or ISBN.Trim() = "" Then
+            MessageBox.Show("Please enter both name and description.")
+            Exit Sub
+        End If
+
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+            Dim command As New SQLiteCommand("INSERT INTO Book_Management (Book_Title, Author,Genre,Publication_Date,ISBN) VALUES (@Book_Title, @Author,@Genre, @Publication_Date,@ISBN)", connection)
+            command.Parameters.AddWithValue("@Book_Title", Book_Title)
+            command.Parameters.AddWithValue("@Author", Author)
+            command.Parameters.AddWithValue("@Genre", Genre)
+            command.Parameters.AddWithValue("@Publication_Date", Publication_Date)
+            command.Parameters.AddWithValue("@ISBN", ISBN)
+            Try
+                ' Execute the SQL command
+                command.ExecuteNonQuery()
+                MessageBox.Show("Record inserted successfully.")
+                Dim dataTable = GetDataTable() ' Replace with your data retrieval method
+                DataGridView1.DataSource = dataTable
+            Catch ex As SQLiteException
+                ' Handle the specific SQLite exception
+                If ex.ErrorCode = SQLiteErrorCode.Constraint Then
+                    ' Check if the exception is due to a primary key constraint violation
+                    MessageBox.Show("Primary key constraint violation: " & ex.Message)
+                Else
+                    ' Handle other SQLite exceptions
+                    MessageBox.Show("SQLite error: " & ex.Message)
+                End If
+            Catch ex As Exception
+                ' Handle other general exceptions
+                MessageBox.Show("An error occurred: " & ex.Message)
+            End Try
+
+            TextBox1.Text = ""
+            TextBox2.Text = ""
+            TextBox3.Text = ""
+            TextBox4.Text = ""
+            TextBox5.Text = ""
+        End Using
+    End Sub
+
+    Private Sub BookManagement_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        Dim dataTable = GetDataTable()
+        DataGridView1.DataSource = dataTable
+    End Sub
+
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        Dim Book_Title As String = TextBox1.Text
+        Dim Author As String = TextBox2.Text
+        Dim Genre As String = TextBox3.Text
+        Dim Publication_Date As String = TextBox4.Text
+        Dim ISBN As String = TextBox5.Text
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+
+            Dim command As New SQLiteCommand("UPDATE Book_Management SET Author = @Author, Genre = @Genre,Publication_Date = @Publication_Date,Book_Title = @Book_Title WHERE ISBN= @ISBN  ", connection)
+            command.Parameters.AddWithValue("@Book_Title", Book_Title)
+            command.Parameters.AddWithValue("@Author", Author)
+            command.Parameters.AddWithValue("@Genre", Genre)
+            command.Parameters.AddWithValue("@Publication_Date", Publication_Date)
+            command.Parameters.AddWithValue("@ISBN", ISBN)
+            Try
+                ' Execute the SQL command
+                Dim rowsAffected As Integer = command.ExecuteNonQuery()
+                If rowsAffected > 0 Then
+                    MessageBox.Show(" " & TextBox1.Text & " Updated successfully!")
+                    ' Refresh DataGridView here
+                    Dim dataTable = GetDataTable()
+                    DataGridView1.DataSource = dataTable
+                Else
+                    MessageBox.Show("No changes made to data!!")
+                End If
+
+            Catch ex As SQLiteException
+                ' Handle the specific SQLite exception
+                If ex.ErrorCode = SQLiteErrorCode.Constraint Then
+                    ' Check if the exception is due to a primary key constraint violation
+                    MessageBox.Show("Record duplication is evidenced: " & ex.Message)
+                Else
+                    ' Handle other SQLite exceptions
+                    MessageBox.Show("SQLite error: " & ex.Message)
+                End If
+            Catch ex As Exception
+                ' Handle other general exceptions
+                MessageBox.Show("An error occurred: " & ex.Message)
+            End Try
+
+
+
+            TextBox1.Text = ""
+                TextBox2.Text = ""
+                TextBox3.Text = ""
+                TextBox4.Text = ""
+                TextBox5.Text = ""
+
+        End Using
+    End Sub
+    Private Sub DataGridView1_CellClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellClick
+        If e.RowIndex >= 0 Then
+
+            ' Get the selected row
+            Dim selectedRow As DataGridViewRow = DataGridView1.Rows(e.RowIndex)
+
+
+            ' Access data from the selected row
+            TextBox1.Text = selectedRow.Cells(0).Value.ToString()
+            TextBox2.Text = selectedRow.Cells(1).Value.ToString()
+            TextBox3.Text = selectedRow.Cells(2).Value.ToString()
+            TextBox4.Text = selectedRow.Cells(3).Value.ToString()
+            TextBox5.Text = selectedRow.Cells(4).Value.ToString()
+
+
+        End If
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
+        Dim Book_Title As String = TextBox1.Text
+        Dim Author As String = TextBox2.Text
+        Dim Genre As String = TextBox3.Text
+        Dim Publication_Date As String = TextBox4.Text
+        Dim ISBN As String = TextBox5.Text
+        If Book_Title.Trim() = "" Then
+            MessageBox.Show("Please enter the Book Title to delete")
+            Exit Sub
+        End If
+
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+            Dim command As New SQLiteCommand("Delete from Book_Management where Book_Title=@Book_Title", connection)
+            command.Parameters.AddWithValue("@Book_Title", Book_Title)
+            command.Parameters.AddWithValue("@Author", Author)
+            command.Parameters.AddWithValue("@Genre", Genre)
+            command.Parameters.AddWithValue("@Publication_Date", Publication_Date)
+            command.Parameters.AddWithValue("@ISBN", ISBN)
+            Dim rowsAffected As Integer = command.ExecuteNonQuery()
+
+            If MessageBox.Show("Data deleted successfully!", "Confirmation", MessageBoxButtons.OK) = DialogResult.OK Then
+                ' Refresh DataGridView here
+                Dim dataTable = GetDataTable() ' Replace with your data retrieval method
+                DataGridView1.DataSource = dataTable
+            End If
+            TextBox1.Clear()
+            TextBox2.Clear()
+            TextBox3.Clear()
+            TextBox4.Clear()
+            TextBox5.Clear()
+        End Using
+    End Sub
+    Private Function GetFilteredData(searchText As String) As DataTable
+        Dim filteredData As New DataTable()
+
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+
+            Dim sql = String.Format("SELECT * FROM Book_Management WHERE LOWER(Book_Title) LIKE '%{0}%' OR LOWER(Genre) LIKE '%{0}%'", searchText)
+            Dim command As New SQLiteCommand(sql, connection)
+            Dim reader As SQLiteDataReader = command.ExecuteReader()
+
+            filteredData.Load(reader)
+        End Using
+
+        Return filteredData
+    End Function
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles BtnSearch.Click
+        Dim searchText As String = txtSearch.Text.ToLower()
+
+        If Not String.IsNullOrEmpty(searchText) Then
+            Dim filteredData = GetFilteredData(searchText)
+            DataGridView1.DataSource = filteredData
+        Else
+            MessageBox.Show("Please enter a search term.")
+            Dim dataTable = GetDataTable() ' Replace with your data retrieval method
+            DataGridView1.DataSource = dataTable
+        End If
+    End Sub
+
+    Private Sub ToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles ToolStripMenuItem1.Click
+
+    End Sub
+
+    Private Sub LogOutToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles LogOutToolStripMenuItem.Click
+        Dim Logout As New Form1
+        Form1.Show()
+        Me.Hide()
+    End Sub
+
+    Private Sub BorrowAndReturnToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BorrowAndReturnToolStripMenuItem.Click
+        Dim Borrow_Return As New Borrow_and_Return
+        Borrow_and_Return.Show()
+
+    End Sub
+
+    Private Sub MemberShipToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles MemberShipToolStripMenuItem.Click
+        Dim Membersh As New Membership
+        Membership.Show()
+
+    End Sub
+
+    Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
+
+    End Sub
+End Class
